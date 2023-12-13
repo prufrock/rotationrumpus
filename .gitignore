@@ -1,0 +1,14 @@
+application.log
+build
+out
+.idea
+.gradle
+video/
+screenshots/
+gui-parameters/
+
+# macOS
+.DS_Store
+
+# vim
+*.swp
