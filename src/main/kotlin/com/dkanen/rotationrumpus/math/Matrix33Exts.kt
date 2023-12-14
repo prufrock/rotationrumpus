@@ -25,6 +25,7 @@ fun orthographic(left: Double, right: Double, top: Double, bottom: Double): Matr
 
 /**
  * Determines if the matrix is orthogonal.
+ * Needs to be a function that accepts a tolerance.
  */
 val Matrix33.isOrthogonal: Boolean
     get() = (this * this.transposed) == Matrix33.IDENTITY
@@ -51,26 +52,29 @@ fun Matrix33.orthoganlizeNonbiased(k: Double): Matrix33 {
     return Matrix33.fromColumnVectors(c0p, c1p, c2p).orthogonalize()
 }
 
-fun Matrix33.orthoganlizeImu(): Matrix33 {
-    val (x_ort, y_ort, z_ort) = columns()
+fun Matrix33.taylorSeriesNormalization(): Matrix33 {
+    val (xOrth, yOrth, zOrth) = columns()
 
-    val x_new = 0.5*(3-x_ort.dot(x_ort))*x_ort
-    val y_new = 0.5*(3-y_ort.dot(y_ort))*y_ort
-    val z_new = 0.5*(3-z_ort.dot(z_ort))*z_ort
+    val xNorm = 0.5*(3-xOrth.dot(xOrth))*xOrth
+    val yNorm = 0.5*(3-yOrth.dot(yOrth))*yOrth
+    val zNorm = 0.5*(3-zOrth.dot(zOrth))*zOrth
 
-    return Matrix33.fromColumnVectors(x_new.normalized, y_new.normalized, z_new.normalized)
+    return Matrix33.fromColumnVectors(xNorm, yNorm, zNorm)
 }
 
 /**
+ * The name is comes from the reference:
  * https://varunagrawal.github.io/2020/02/11/fast-orthogonalization/
  */
 fun Matrix33.renormalization(): Matrix33 {
+    // I'm pretty sure I need to also compensate for drift into the z-axis.
     val (x, y, z) = columns()
     val e = x.dot(y)
     val xOrth = x - (0.5*e*y)
     val yOrth = y - (0.5*e*x)
     val zOrth = xOrth.cross(yOrth)
 
+    // taylor-series based renormalization
     val xNorm = 0.5*(3-xOrth.dot(xOrth))*xOrth
     val yNorm = 0.5*(3-yOrth.dot(yOrth))*yOrth
     val zNorm = 0.5*(3-zOrth.dot(zOrth))*zOrth
@@ -92,20 +96,20 @@ fun Matrix33.eq(other: Matrix33, atol: Double): Boolean {
 fun Matrix33.eulerAngles(): Triple<Double, Double, Double> {
     // We will compute the Euler angle values in radians
     // and store them here:
-    val h: Double
-    val p: Double
-    val b: Double
+    val heading: Double
+    val pitch: Double
+    val bank: Double
 
     // Extract pitch from m32, being careful for domain errors with
     // asin().  We could have values slightly out of range due to
     // floating point arithmetic.
     val sp: Double = -c2r1
     if (sp <= -1.0f) {
-        p = -1.570796 // -pi/2
+        pitch = -1.570796 // -pi/2
     } else if (sp >= 1.0) {
-        p = 1.570796 // pi/2
+        pitch = 1.570796 // pi/2
     } else {
-        p = asin(sp)
+        pitch = asin(sp)
     }
 
    // Check for the Gimbal lock case, giving a slight tolerance
@@ -114,18 +118,18 @@ fun Matrix33.eulerAngles(): Triple<Double, Double, Double> {
 
         // We are looking straight up or down.
         // Slam bank to zero and just set heading
-        b = 0.0
-        h = atan2(-c0r2, c0r0)
+        bank = 0.0
+        heading = atan2(-c0r2, c0r0)
     } else {
 
         // Compute heading
-        h = atan2(c2r0, c2r2)
+        heading = atan2(c2r0, c2r2)
 
         // Compute bank
-        b = atan2(c0r1, c1r1)
+        bank = atan2(c0r1, c1r1)
     }
 
-    return Triple(h, p, b)
+    return Triple(heading, pitch, bank)
 }
 
 /**

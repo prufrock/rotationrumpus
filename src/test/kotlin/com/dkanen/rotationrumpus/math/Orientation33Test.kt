@@ -5,7 +5,6 @@ import org.junit.jupiter.api.Test
 import org.openrndr.math.Matrix33
 import org.openrndr.math.Matrix44
 import org.openrndr.math.Vector3
-import org.openrndr.math.transforms.rotateX
 import org.openrndr.math.transforms.rotateY
 import org.openrndr.math.transforms.rotateZ
 
@@ -96,7 +95,7 @@ class Orientation33Test {
         )
         assertFalse(o.isOrthogonal)
         val t = o * o.transposed
-        val oo = o.orthoganlizeImu()
+        val oo = o.taylorSeriesNormalization()
         assertTrue((oo * oo.transposed).eq(Matrix33.IDENTITY, atol = 0.1))
     }
 
