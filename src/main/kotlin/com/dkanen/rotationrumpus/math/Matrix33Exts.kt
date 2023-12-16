@@ -20,15 +20,11 @@ fun orthographic(left: Double, right: Double, top: Double, bottom: Double): Matr
     x = -((right + left) / (right - left)),
     y = -((top + bottom) / (top - bottom)),
     z = 1.0
-)
-)
+))
 
-/**
- * Determines if the matrix is orthogonal.
- * Needs to be a function that accepts a tolerance.
- */
-val Matrix33.isOrthogonal: Boolean
-    get() = (this * this.transposed) == Matrix33.IDENTITY
+fun Matrix33.isOrthogonal(atol: Double = 1.0e-3): Boolean {
+    return (this * this.transposed).eq(Matrix33.IDENTITY, atol = atol)
+}
 
 fun Matrix33.orthogonalize(): Matrix33 {
     val (c0, c1, c2) = columns()

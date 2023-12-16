@@ -35,11 +35,11 @@ class Orientation33Test {
     @Test
     fun `orthogonalize a rotation matrix`() {
         val o = Orientation33(Matrix44.rotateY(90.0).matrix33)
-        assertTrue(o.objectToUpright().isOrthogonal)
+        assertTrue(o.objectToUpright().isOrthogonal())
 
         val t = Orientation33(Matrix44.rotateZ(2.4).matrix33)
         val oo = t.objectToUpright().renormalization()
-        assertTrue(oo.isOrthogonal)
+        assertTrue(oo.isOrthogonal())
         assertTrue((oo * oo.transposed).eq(Matrix33.IDENTITY, atol = 1.0e-3))
     }
 }
